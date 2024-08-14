@@ -1392,8 +1392,8 @@ xdrawglyphfontspecs(const XftGlyphFontSpec *specs, Glyph base, int len, int x, i
 	int charlen = len * ((base.mode & ATTR_WIDE) ? 2 : 1);
 	int winx = borderpx + x * win.cw, winy = borderpx + y * win.ch,
 	    width = charlen * win.cw;
-	Color *fg, *bg, *temp, revfg, revbg, truefg, truebg;
-	XRenderColor colfg, colbg;
+	Color *fg, *bg, *ul, *temp, revfg, revbg, truefg, truebg, trueul;
+	XRenderColor colfg, colbg, colul;
 	XRectangle r;
 
 	/* Fallback on color display for attributes not supported by the font */
@@ -1425,6 +1425,17 @@ xdrawglyphfontspecs(const XftGlyphFontSpec *specs, Glyph base, int len, int x, i
 		bg = &truebg;
 	} else {
 		bg = &dc.col[base.bg];
+	}
+
+	if (IS_TRUECOL(base.ul)) {
+		colul.alpha = 0xffff;
+		colul.green = TRUEGREEN(base.ul);
+		colul.red = TRUERED(base.ul);
+		colul.blue = TRUEBLUE(base.ul);
+		XftColorAllocValue(xw.dpy, xw.vis, xw.cmap, &colul, &trueul);
+		ul = &trueul;
+	} else {
+		ul = &dc.col[base.ul];
 	}
 
 	if (IS_SET(MODE_REVERSE)) {
@@ -1474,6 +1485,9 @@ xdrawglyphfontspecs(const XftGlyphFontSpec *specs, Glyph base, int len, int x, i
 	if (base.mode & ATTR_INVISIBLE)
 		fg = bg;
 
+	if (base.ul == defaultfg)
+	        ul = fg;
+
 	/* Intelligent cleaning up of the borders. */
 	if (x == 0) {
 		xclear(0, (y == 0)? 0 : winy, borderpx,
@@ -1499,17 +1513,16 @@ xdrawglyphfontspecs(const XftGlyphFontSpec *specs, Glyph base, int len, int x, i
 	r.width = width;
 	XftDrawSetClipRectangles(xw.draw, winx, winy, &r, 1);
 
+	if (base.mode & ATTR_UNDERLINE) {
+		XftDrawRect(xw.draw, ul, winx, winy + win.ch - cursorthickness,
+				width, cursorthickness);
+	}
+
 	if (base.mode & ATTR_BOXDRAW) {
 		drawboxes(winx, winy, width / len, win.ch, fg, bg, specs, len);
 	} else {
 		/* Render the glyphs. */
 		XftDrawGlyphFontSpec(xw.draw, fg, specs, len);
-	}
-
-	/* Render underline and strikethrough. */
-	if (base.mode & ATTR_UNDERLINE) {
-		XftDrawRect(xw.draw, fg, winx, winy + dc.font.ascent * chscale + 1,
-				width, 1);
 	}
 
 	if (base.mode & ATTR_STRUCK) {

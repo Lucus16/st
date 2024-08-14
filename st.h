@@ -12,7 +12,7 @@
 #define DEFAULT(a, b)		(a) = (a) ? (a) : (b)
 #define LIMIT(x, a, b)		(x) = (x) < (a) ? (a) : (x) > (b) ? (b) : (x)
 #define ATTRCMP(a, b)		((a).mode != (b).mode || (a).fg != (b).fg || \
-				(a).bg != (b).bg)
+				(a).bg != (b).bg || (a).ul != (b).ul)
 #define TIMEDIFF(t1, t2)	((t1.tv_sec-t2.tv_sec)*1000 + \
 				(t1.tv_nsec-t2.tv_nsec)/1E6)
 #define MODBIT(x, set, bit)	((set) ? ((x) |= (bit)) : ((x) &= ~(bit)))
@@ -64,8 +64,9 @@ typedef uint_least32_t Rune;
 typedef struct {
 	Rune u;           /* character code */
 	ushort mode;      /* attribute flags */
-	uint32_t fg;      /* foreground  */
-	uint32_t bg;      /* background  */
+	uint32_t fg;      /* foreground color */
+	uint32_t bg;      /* background color */
+	uint32_t ul;      /* underline color */
 } Glyph;
 
 typedef Glyph *Line;
