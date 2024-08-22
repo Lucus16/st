@@ -1383,11 +1383,17 @@ tdefcolor(const int *attr, int *npar, int l)
 				"erresc(38): Incorrect number of parameters (%d)\n",
 				*npar);
 			break;
+		} else if (*npar + 5 < l) {
+			r = attr[*npar + 3];
+			g = attr[*npar + 4];
+			b = attr[*npar + 5];
+			*npar += 5;
+		} else {
+			r = attr[*npar + 2];
+			g = attr[*npar + 3];
+			b = attr[*npar + 4];
+			*npar += 4;
 		}
-		r = attr[*npar + 2];
-		g = attr[*npar + 3];
-		b = attr[*npar + 4];
-		*npar += 4;
 		if (!BETWEEN(r, 0, 255) || !BETWEEN(g, 0, 255) || !BETWEEN(b, 0, 255))
 			fprintf(stderr, "erresc: bad rgb color (%u,%u,%u)\n",
 				r, g, b);
