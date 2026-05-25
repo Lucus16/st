@@ -1360,22 +1360,24 @@ xmakeglyphfontspecs(XftGlyphFontSpec *specs, const Glyph *glyphs, int len, int x
 
 			frc[frclen].font = XftFontOpenPattern(xw.dpy,
 					fontpattern);
-			if (!frc[frclen].font)
-				die("XftFontOpenPattern failed seeking fallback font: %s\n",
-					strerror(errno));
-			frc[frclen].flags = frcflags;
-			frc[frclen].unicodep = rune;
 
-			glyphidx = XftCharIndex(xw.dpy, frc[frclen].font, rune);
+			if (!frc[frclen].font) {
+				fprintf(stderr, "XftFontOpenPattern failed seeking fallback font: %s\n", strerror(errno));
+			} else {
+				frc[frclen].flags = frcflags;
+				frc[frclen].unicodep = rune;
 
-			f = frclen;
-			frclen++;
+				glyphidx = XftCharIndex(xw.dpy, frc[frclen].font, rune);
+
+				f = frclen;
+				frclen++;
+			}
 
 			FcPatternDestroy(fcpattern);
 			FcCharSetDestroy(fccharset);
 		}
 
-		specs[numspecs].font = frc[f].font;
+		specs[numspecs].font = f < frclen ? frc[f].font : font->match;
 		specs[numspecs].glyph = glyphidx;
 		specs[numspecs].x = (short)xp;
 		specs[numspecs].y = (short)yp;
